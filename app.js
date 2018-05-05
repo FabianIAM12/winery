@@ -42,14 +42,12 @@ chardoney.save(function(error, document){ });
 schnaps.save(function(error, document){ });
 
 function clean_entry(wine){
-    return(
-        {'id':wine.id,
+    return({'id':wine.id,
         'name':wine.name,
         'year':wine.year,
         'country':wine.country,
         'type':wine.type,
-        'description':wine.description}
-        )
+        'description':wine.description})
 }
 
 server.get('/wines', function (req, res) {
@@ -65,8 +63,47 @@ server.get('/wines', function (req, res) {
 });
 
 server.post('/wines', function (req, res) {
-    console.log(req);
-    res.send('POST request to the homepage');
+    var wine_categories = ['red', 'white', 'rose'];
+    var validation_errors = [];
+
+    var POST = {};
+    req.on('data', function(data) {
+        data = data.toString();
+        data = data.split('&');
+        for (var i = 0; i < data.length; i++) {
+            var _data = data[i].split("=");
+            POST[_data[0]] = _data[1];
+        }
+
+        if (!POST['name']){
+            validation_errors.push({'type':'MISSING'});
+        }
+
+        var year_re = /^\d{4}$/;
+        if (!POST['year']){
+            validation_errors.push({'type':'MISSING'});
+        }else if(!year_re.test(POST['year'])){
+            validation_errors.push({'type':'INVALID'});
+        }
+
+        if (!POST['country']){
+            validation_errors.push({'type':'MISSING'});
+        }
+
+        if (!POST['type']){
+            validation_errors.push({'type':'MISSING'});
+        }else if(!wine_categories.includes(POST['type'])){
+            validation_errors.push({'type':'INVALID'});
+        }
+
+        if (validation_errors.length > 0){
+            res.send({error: 'VALIDATION ERROR',
+                validation: validation_errors});
+        }else{
+            var saufi = new Wine({ id: 10, name: POST['name'], year: POST['year'], country: POST['country'], type: POST['type'], description: POST['description']});
+            saufi.save(function(error, document){ });
+        }
+    });
 });
 
 server.get('/wines/:id', function (req, res) {
