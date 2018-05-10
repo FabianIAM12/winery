@@ -6,6 +6,7 @@
 },
 "dependencies": {
   "express": "3.x",
-  "restify": "5.x"
+  "restify": "5.x",
+  "mongoose": "5.x"
   }
 }
