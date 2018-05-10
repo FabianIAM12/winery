@@ -180,6 +180,6 @@ server.post('/drop_data', function (req, res) {
     res.send({'success': true});
 });
 
-server.listen(80, function() {
+server.listen(8080, function() {
 	console.log('%s winery startet - listening at %s', server.name, server.url);
 });
