@@ -60,8 +60,12 @@ function clean_and_split_parameters(parameters){
 
 server.get('/wines', function (req, res) {
 	Wine.find({}, function(err, wines) {
+        var wines_array = [];
+        wines.forEach(function (wine) {
+        	wines_array.push(clean_entry(wine));
+        });
 		res.writeHead(200, {'Content-Type': 'application/json'});
-		var json = JSON.stringify(wines);
+		var json = JSON.stringify(wines_array);
 		res.end(json);
 	});
 });
