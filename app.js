@@ -20,19 +20,7 @@ var wineSchema = mongoose.Schema({
 });
 
 var Wine = mongoose.model('Wine', wineSchema);
-Wine.collection.drop();
-
-var chardoney = new Wine({ id: 4, name: 'Zinfandel Wine', year: '2010', country: 'France', type: 'red', description: 'dingeling'});
-var schnaps = new Wine({ id: 5, name: 'Zimtkuchen Schnaps', year: '2015', country: 'Germany', type: 'green', description: 'Very smooth'});
-var bier = new Wine({ id: 6, name: 'Schnaps', year: '2015', country: 'Germany', type: 'green', description: 'Very smooth'});
-var wein = new Wine({ id: 7, name: 'Zimtkuchen Wodka', year: '1995', country: 'Bavaria', type: 'green', description: 'Very smooth'});
-var obstler = new Wine({ id: 8, name: 'Bier', year: '900', country: 'Chech', type: 'green', description: 'Very smooth'});
-
-chardoney.save(function(error, document){ });
-schnaps.save(function(error, document){ });
-bier.save(function(error, document){ });
-wein.save(function(error, document){ });
-obstler.save(function(error, document){ });
+//Wine.collection.drop();
 
 function clean_entry(wine){
 	return({'id':wine.id,
@@ -91,8 +79,7 @@ server.get(/wines&([a-zA-Z0-9_=\.~-]+)(.*)/, function(req, res, next) {
 			wines_array.push(clean_entry(wine));
 		});
 		res.writeHead(200, {'Content-Type': 'application/json'});
-		var json = JSON.stringify(wines_array);
-		res.end(json);
+		res.end(JSON.stringify(wines_array));
 	});
 });
 
@@ -139,23 +126,45 @@ server.post('/wines', function (req, res) {
 			res.send({error: 'VALIDATION ERROR',
 				validation: validation_errors});
 		}else{
-            Wine.find().limit(1).sort({ id: -1 }).exec(function (err, result) {
+            Wine.find().limit(1).sort({ id: -1 }).exec(function (err, result){
                 var next_id = 1;
-                if (result[0].id){
+                if (typeof(result[0]) !== "undefined"){
                     next_id = result[0].id + 1;
                 }
-                var new_entry = new Wine({ id: next_id, name: POST['name'], year: POST['year'], country: POST['country'], type: POST['type'], description: POST['description']});
-                new_entry.save();
+
+                var new_entry = new Wine({
+                    id: next_id,
+                    name: POST['name'],
+                    year: POST['year'],
+                    country: POST['country'],
+                    type: POST['type'],
+                    description: POST['description']});
+
+                new_entry.save(function (err, entry) {
+                    if (err) return console.error(err);
+                    res.send(JSON.stringify(clean_entry(entry)));
+                });
             });
-            res.send({'success': true});
 		}
 	});
+});
+
+server.put('/wines/:id', function (req, res) {
+    req.on('data', function(data) {
+        Wine.findOneAndUpdate({'id': req.params['id']}, JSON.parse(data)).exec(function (err, result) {
+            if (result) {
+                res.send(JSON.stringify(clean_entry(result)));
+            }else{
+                res.send({error: 'UNKNOWN OBJECT'});
+            }
+        });
+    });
 });
 
 server.get('/wines/:id', function (req, res) {
 	Wine.findOne({'id': req.params['id']}).exec(function (err, result) {
 		if (result) {
-			res.send(JSON.stringify(clean_entry(wine)));
+			res.send(JSON.stringify(clean_entry(result)));
 		}else{
 			res.send({error: 'UNKNOWN OBJECT'});
 		}
@@ -165,7 +174,7 @@ server.get('/wines/:id', function (req, res) {
 server.del('/wines/:id', function (req, res) {
 	Wine.findOneAndRemove({'id': req.params['id']}).exec(function (err, result) {
 		if (result) {
-			res.send({'success': true});
+            res.send({'success': true});
 		}else{
 			res.send({error: 'UNKNOWN OBJECT'});
 		}
