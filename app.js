@@ -1,5 +1,6 @@
 var restify = require('restify');
 var server = restify.createServer();
+const PORT = process.env.PORT || 8080;
 
 var mongoose = require('mongoose');
 mongoose.connect(process.env.MONGODB_URI);
@@ -180,6 +181,6 @@ server.post('/drop_data', function (req, res) {
     res.send({'success': true});
 });
 
-server.listen(process.env.PORT || 8080, function() {
-	console.log('%s winery startet - listening at %s', server.name, server.url);
+server.listen(PORT || 8080, function() {
+	console.log('%s winery startet - listening at %s', server.name, PORT);
 });
