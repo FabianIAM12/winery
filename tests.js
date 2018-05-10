@@ -1,12 +1,22 @@
 var assert = require('assert');
 var request = require('request');
 
+var LOCAL_URL = 'http://localhost:8080/wines';
+var LIVE_URL = 'https://vast-harbor-96555.herokuapp.com/wines';
+var URL = LIVE_URL;
+
+
 function test_get_wines(entry) {
     request.get(
-        'http://localhost:8080/wines',
+        URL,
         function (error, response, body) {
             if (!error) {
+                var data = JSON.parse(body);
                 assert.equal(response.statusCode, 200);
+                assert.equal(data[0].name, entry.name);
+                assert.equal(data[0].year, entry.year);
+                assert.equal(data[0].country, entry.country);
+                assert.equal(data[0].type, entry.type);
             }
         }
     );
@@ -14,7 +24,7 @@ function test_get_wines(entry) {
 
 function test_get_wines_filter(entry, filter) {
     request.get(
-        'http://localhost:8080/wines' + filter,
+        URL + filter,
         function (error, response, body) {
             if (!error) {
                 var data = JSON.parse(body);
@@ -30,7 +40,7 @@ function test_get_wines_filter(entry, filter) {
 
 function test_post(wine) {
     request({
-        url: "http://localhost:8080/wines",
+        url: URL,
         method: "POST",
         json: true,
         body: wine
@@ -46,7 +56,7 @@ function test_post(wine) {
 
 function test_invalid_post(wine) {
     request({
-        url: "http://localhost:8080/wines",
+        url: URL,
         method: "POST",
         json: true,
         body: wine
@@ -58,7 +68,7 @@ function test_invalid_post(wine) {
 
 function test_get(id, wine) {
     request.get(
-        'http://localhost:8080/wines/' + id,
+        URL + '/' + id,
         { json: { key: 'value' } },
         function (error, response, body) {
             if (!error) {
@@ -75,7 +85,7 @@ function test_get(id, wine) {
 
 function test_invalid_get(id) {
     request.get(
-        'http://localhost:8080/wines/' + id,
+        URL + '/' + id,
         { json: { key: 'value' } },
         function (error, response, body) {
             console.log(body);
@@ -86,7 +96,7 @@ function test_invalid_get(id) {
 
 function test_del(id) {
     request.del(
-        'http://localhost:8080/wines/' + id,
+        URL + '/' + id,
         { json: { key: 'value' } },
         function (error, response, body) {
             if (!error) {
@@ -98,7 +108,7 @@ function test_del(id) {
 
 function test_invalid_del(id) {
     request.del(
-        'http://localhost:8080/wines/' + id,
+        URL + '/' + id,
         { json: { key: 'value' } },
         function (error, response, body) {
             console.log(body);
@@ -109,7 +119,7 @@ function test_invalid_del(id) {
 
 function test_put(id, wine){
     request({
-        url: "http://localhost:8080/wines/" + id,
+        url: URL + '/' + id,
         method: "PUT",
         json: true,
         body: JSON.stringify(wine)
@@ -125,7 +135,7 @@ function test_put(id, wine){
 
 function test_invalid_put(id, wine){
     request({
-        url: "http://localhost:8080/wines/" + id,
+        url: URL + '/' + id,
         method: "PUT",
         json: true,
         body: JSON.stringify(wine)
@@ -137,7 +147,7 @@ function test_invalid_put(id, wine){
 
 function drop_data() {
     request({
-        url: "http://localhost:8080/drop_data",
+        url: URL,
         method: "POST"
     }, function (error, response, body) {
         console.log('deleted data');
@@ -164,16 +174,18 @@ test_invalid_get(99999);
 test_invalid_del(99999);
 
 /* BASIC TESTS */
-test_post(test_wine_1);
-test_get(20, test_wine_1);
+test_post(test_wine_4);
+test_get(2, test_wine_2);
+
 test_post(test_wine_2);
 test_post(test_wine_3);
 test_post(test_wine_4);
-test_get_wines(test_wine_1);
+test_get_wines(test_wine_2);
+
 test_get_wines_filter(test_wine_1, '&country=France');
-test_get_wines_filter(test_wine_2, '&country=Germany');
+test_get_wines_filter(test_wine_2, '&country=Germany&year=1996');
 test_get_wines_filter(test_wine_3, '&year=2010&country=France');
 test_get_wines_filter(test_wine_4, '&name=American');
 
-test_put(20, special_wine);
-test_del(20);
+test_put(1, special_wine);
+test_del(3);
